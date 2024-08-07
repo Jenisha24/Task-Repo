@@ -1,5 +1,6 @@
 package com.todo.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -45,11 +46,28 @@ public class EventService {
 		eventRepo.save(eventData);
 		return "event has been completed";
 	}
-	
-	public ArrayList<EventEntity> getEvent() {
-		ArrayList<EventEntity> eventEntities = new ArrayList<>();
-				eventRepo.findAll();
-		 return null;
 
+	public ArrayList<EventEntity> getEvent() {
+		ArrayList<EventEntity> allEvent = new ArrayList<EventEntity>();
+		allEvent.addAll(eventRepo.findAll());
+		return allEvent;
+
+	}
+
+	public ArrayList<EventEntity> getStatus(String eventStatus) {
+		ArrayList<EventEntity> eventByStatus = new ArrayList<EventEntity>();
+		if(eventStatus.equals("overdue")){
+	    	LocalDate currentDate=LocalDate.now();
+			ArrayList<EventEntity> pendingList = new ArrayList<EventEntity>();
+			pendingList.addAll(eventRepo.findByEventStatus("pending"));
+			for(EventEntity event : pendingList) {
+				if(event.getEventDate().isBefore(currentDate)) {
+					eventByStatus.add(event);
+				}
+			}
+
+		}
+		eventByStatus.addAll(eventRepo.findByEventStatus(eventStatus));
+		return eventByStatus;
 	}
 }
