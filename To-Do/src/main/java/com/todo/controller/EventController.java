@@ -1,6 +1,7 @@
 package com.todo.controller;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -38,13 +39,13 @@ public class EventController {
 		
 	}
 	
-	@PutMapping("/update/{eventId}")
+	@PutMapping("/completed/{eventId}")
 	public String  updateStatus(@PathVariable int eventId) {
 		return eventService.updateStatus(eventId);
 	}
 	
 	@GetMapping("/get")
-	public ArrayList<EventEntity> getEvent() {
+	public ArrayList<Map<String, ArrayList<EventEntity>>> getEvent() {
 		return eventService.getEvent();
 	}
 	
