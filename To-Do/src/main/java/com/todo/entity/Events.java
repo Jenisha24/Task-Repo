@@ -1,13 +1,7 @@
 package com.todo.entity;
 
-import java.sql.Date;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-
-import org.springframework.cglib.core.Local;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,21 +11,20 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table
-public class EventEntity {
+public class Events {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private int eventId;
 	private String eventName;
 	private String eventDescription;
 	private LocalDate eventDate;
 	private LocalTime eventTime;
-	@JsonIgnore
 	private String eventStatus;
 
-	public EventEntity() {
+	public Events() {
 	}
 
-	public EventEntity(int eventId, String eventName, String eventDescription, LocalDate eventDate, LocalTime eventTime,
+	public Events(int eventId, String eventName, String eventDescription, LocalDate eventDate, LocalTime eventTime,
 			String eventStatus) {
 		this.eventId = eventId;
 		this.eventName = eventName;
@@ -78,7 +71,7 @@ public class EventEntity {
 	}
 
 	public void setEventTime(LocalTime eventTime) {
-		this.eventTime = eventTime;
+		this.eventTime = eventTime;	
 	}
 
 	public String getEventStatus() {

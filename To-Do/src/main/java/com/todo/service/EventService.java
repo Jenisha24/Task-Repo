@@ -2,15 +2,15 @@ package com.todo.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.List;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.todo.entity.EventEntity;
+import com.todo.entity.Events;
 import com.todo.repository.EventRepo;
+import com.todo.vo.EventDetailVo;
 
 @Service
 public class EventService {
@@ -18,63 +18,91 @@ public class EventService {
 	@Autowired
 	EventRepo eventRepo;
 
-	public String saveEvent(EventEntity eventEntity) {
-		eventEntity.setEventStatus("pending");
-		eventRepo.save(eventEntity);
-		return "event details has been saved successfully";
+	@Autowired
+	ModelMapper modelMapper;
+
+//	save & update an event
+	public String event(EventDetailVo eventDetails) {
+		if (eventDetails.getEventId() == 0 && eventDetails.getEventStatus() == null) {
+			Events newEventDetails = new Events();
+			newEventDetails = modelMapper.map(eventDetails, Events.class);
+			newEventDetails.setEventStatus("pending");
+			eventRepo.save(newEventDetails);
+			return "event details has been saved successfully";
+		} else {
+			Events newEventDetails = eventRepo.findById(eventDetails.getEventId()).get();
+			newEventDetails = modelMapper.map(eventDetails, Events.class);
+			eventRepo.save(newEventDetails);
+			return "event details updated successfully";
+		}
 	}
 
-	public EventEntity updateEvent(EventEntity eventEntity) {
-		Optional<EventEntity> existingDataOptional = eventRepo.findById(eventEntity.getEventId());
-		EventEntity eventDetail = existingDataOptional.get();
-		eventDetail.setEventName(eventEntity.getEventName());
-		eventDetail.setEventDescription(eventEntity.getEventDescription());
-		eventDetail.setEventDate(eventEntity.getEventDate());
-		eventDetail.setEventTime(eventEntity.getEventTime());
-		EventEntity updateDetails = eventRepo.save(eventDetail);
-		return updateDetails;
-
-	}
-
+//	delete an event
 	public String deleteEvent(int eventId) {
 		eventRepo.deleteById(eventId);
 		return "event has been deleted successfully";
 
 	}
 
+//	status update to completed
 	public String updateStatus(int eventId) {
-		EventEntity eventData = eventRepo.findById(eventId).get();
+		Events eventData = eventRepo.findById(eventId).get();
 		eventData.setEventStatus("completed");
 		eventRepo.save(eventData);
 		return "event has been completed";
 	}
 
-	public ArrayList<Map<String, ArrayList<EventEntity>>> getEvent() {
-		ArrayList<Map<String, ArrayList<EventEntity>>> allEvent = new ArrayList<>();
-		Map<String, ArrayList<EventEntity>> eventByStatus = new HashMap<>();
-		eventByStatus.put("pending", getStatus("pending"));
-		eventByStatus.put("overdue", getStatus("overdue"));
-		eventByStatus.put("completed", getStatus("completed"));
-		allEvent.add(eventByStatus);
-		return allEvent;
-
+//	Get all the created events
+	
+	public ArrayList<EventDetailVo> getEvent(){
+		 ArrayList<EventDetailVo> allEvents=new ArrayList<EventDetailVo>();
+		 List<Events> events=eventRepo.findAll();
+		 for(Events event : events) {
+			 EventDetailVo eventDetail = modelMapper.map(event,EventDetailVo.class);
+			 allEvents.add(eventDetail);
+		 }
+		 return allEvents;
+		 
 	}
+	
+	
+	
+//	public ArrayList<Map<String, ArrayList<EventDetailVo>>> getEvent() {
+//		ArrayList<Map<String, ArrayList<EventDetailVo>>> allEvent = new ArrayList<>();
+//		Map<String, ArrayList<EventDetailVo>> eventByStatus = new HashMap<>();
+//		eventByStatus.put("pending", getStatus("pending"));
+//		eventByStatus.put("overdue", getStatus("overdue"));
+//		eventByStatus.put("completed", getStatus("completed"));
+//		allEvent.add(eventByStatus);
+//		return allEvent;
+//
+//	}
+	
+	
 
-	public ArrayList<EventEntity> getStatus(String eventStatus) {
-		ArrayList<EventEntity> eventByStatus = new ArrayList<EventEntity>();
+//	 group the events by status
+	public ArrayList<EventDetailVo> getStatus(String eventStatus) {
+		ArrayList<EventDetailVo> eventByStatus = new ArrayList<EventDetailVo>();
 		if (eventStatus.equals("overdue") || eventStatus.equals("pending")) {
 			LocalDate currentDate = LocalDate.now();
-			ArrayList<EventEntity> pendingList = new ArrayList<EventEntity>();
+			ArrayList<Events> pendingList = new ArrayList<Events>();
 			pendingList.addAll(eventRepo.findByEventStatus("pending"));
-			for (EventEntity event : pendingList) {
+			for (Events event : pendingList) {
 				if (event.getEventDate().isBefore(currentDate) && eventStatus.equals("overdue")) {
-					eventByStatus.add(event);
+					EventDetailVo eventRes = modelMapper.map(event, EventDetailVo.class);
+					eventRes.setEventStatus("overdue");
+					eventByStatus.add(eventRes);
 				} else if (event.getEventDate().isAfter(currentDate) && eventStatus.equals("pending")) {
-					eventByStatus.add(event);
+					EventDetailVo eventRes = modelMapper.map(event, EventDetailVo.class);
+					eventByStatus.add(eventRes);
 				}
 			}
 		} else {
-			eventByStatus.addAll(eventRepo.findByEventStatus(eventStatus));
+			ArrayList<Events> eventDetails = eventRepo.findByEventStatus(eventStatus);
+			for (Events event : eventDetails) {
+				EventDetailVo eventRes = modelMapper.map(event, EventDetailVo.class);
+				eventByStatus.add(eventRes);
+			}
 		}
 		return eventByStatus;
 	}

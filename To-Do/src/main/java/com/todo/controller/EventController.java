@@ -13,47 +13,44 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.todo.entity.EventEntity;
 import com.todo.service.EventService;
+import com.todo.vo.EventDetailVo;
 
 @RestController
 @RequestMapping("/todo")
 public class EventController {
 	@Autowired
 	EventService eventService;
-	
-	@PostMapping("/save")
-	public String saveEvent(@RequestBody EventEntity eventEntity ) {
-		return eventService.saveEvent(eventEntity);
+
+	@PostMapping("/event")
+	public String saveEvent(@RequestBody EventDetailVo eventDetails) {
+		return eventService.event(eventDetails);
 	}
-	
-	@PutMapping("/update")
-	public EventEntity updateEvent(@RequestBody EventEntity eventEntity) {
-		return eventService.updateEvent(eventEntity);
-		
+
+	@PutMapping("/event")
+	public String updateEvent(@RequestBody EventDetailVo eventDetail) {
+		return eventService.event(eventDetail);
 	}
-	
-	@DeleteMapping("/delete/{eventId}")
+
+	@DeleteMapping("/event/{eventId}")
 	public String deleteEvent(@PathVariable int eventId) {
 		return eventService.deleteEvent(eventId);
-		
+
 	}
-	
-	@PutMapping("/completed/{eventId}")
-	public String  updateStatus(@PathVariable int eventId) {
+
+	@PutMapping("/event/{eventId}")
+	public String updateStatus(@PathVariable int eventId) {
 		return eventService.updateStatus(eventId);
 	}
-	
-	@GetMapping("/get")
-	public ArrayList<Map<String, ArrayList<EventEntity>>> getEvent() {
+
+	@GetMapping("/event")
+	public ArrayList<EventDetailVo> getEvent() {
 		return eventService.getEvent();
 	}
-	
-	@GetMapping("/get/{eventStatus}")
-	public ArrayList<EventEntity> getStatus(@PathVariable String eventStatus){
+
+	@GetMapping("/event/{eventStatus}")
+	public ArrayList<EventDetailVo> getStatus(@PathVariable String eventStatus) {
 		return eventService.getStatus(eventStatus);
 	}
-	
-	
-}
 
+}
