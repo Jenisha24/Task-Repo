@@ -6,7 +6,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -166,59 +168,68 @@ public class RestaurantService {
 			return "Invalid number of booked seats. Seats exceed the table's capacity";
 
 		}	
-        if (bookingRepo.existsByMealIdAndTableIdAndBookingDate(mealId, tableId, bookingDate)) {
-            return "Table is not available for booking on this date";
-        } 
-        
-		Booking addBooking = modelMapper.map(bookingDetails, Booking.class);
-		addBooking.setMealId(mealId);
-		addBooking.setTableId(tableId);
-		addBooking.setBookingStatus("Booked");
-		addBooking.setUserId(userId);
-		bookingRepo.save(addBooking);
-		return "Booking Successfully";
+//      
+		
+	    int availableSeats = bookingRepo.findAvailableSeats(mealId, bookingDate,tableId);
+	    if(availableSeats >= bookingDetails.getBookedSeat()) {
+	    	
+	        Booking addBooking = modelMapper.map(bookingDetails, Booking.class);
+			addBooking.setMealId(mealId);
+			addBooking.setTableId(tableId);
+			addBooking.setBookingStatus("Booked");
+			addBooking.setUserId(userId);
+			bookingRepo.save(addBooking);
+			return "Booking Successfully";
+		}
+	    else {
+	    	 return "Table is not available for booking on this date";
+	    }
 		}
 		catch (DateTimeException e) {
 	        return "An error occurred with the date input: " + e.getMessage();
 		}   
-		catch (Exception e) {
-	        return "An error occurred: Invalid input";
-	    }
+//		catch (Exception e) {
+//	        return "An error occurred: Invalid input";
+//	    }
 	}
 
 	// check availability
+	
+
 	public List<SeatingAvailabilityVo> availableSeats(AvailabilityVo bookingDetails) {
-		List<SeatingAvailabilityVo> seatingAvailabilityList = new ArrayList<>();
-		int mealId = mealsRepo.findMealIdByMealType(bookingDetails.getMealType());
-		LocalDate bookingDate = bookingDetails.getBookingDate();
+	    List<SeatingAvailabilityVo> seatingAvailabilityList = new ArrayList<>();
+	    int mealId = mealsRepo.findMealIdByMealType(bookingDetails.getMealType());
+	    LocalDate bookingDate = bookingDetails.getBookingDate();
+	    List<Tables> allTables = tableRepo.findAll();
 
-		List<Tables> allTables = tableRepo.findAll();
-		
-		allTables.forEach(table -> {
-			SeatingAvailabilityVo tableAvailability = new SeatingAvailabilityVo();
-			tableAvailability.setMealType(bookingDetails.getMealType());
-			tableAvailability.setBookingDate(bookingDate);
-			tableAvailability.setTableName(table.getTableName());
+	    List<Object[]> availableSeatsData = tableRepo.findSeatingAvailability(mealId, bookingDate);
 
-			int availableSeats;
+	    allTables.forEach(table -> {
+	        SeatingAvailabilityVo tableAvailability = new SeatingAvailabilityVo();
+	        tableAvailability.setMealType(bookingDetails.getMealType());
+	        tableAvailability.setBookingDate(bookingDate);
+	        tableAvailability.setTableName(table.getTableName());
 
-			Integer bookedSeat = bookingRepo.findBookedSeatByMealIdAndBookingDate(mealId, bookingDate);
-			Integer tableId = bookingRepo.findTableIdByMealIdAndBookingDate(mealId, bookingDate);
+	        Integer availableSeats = null;
 
-			if (bookedSeat != null && tableId != null && table.getTableId() == tableId) {
-				int seatingCapacity = tableRepo.findSeatingCapacityByTableId(tableId);
-				availableSeats = seatingCapacity - bookedSeat;
-			} else {
-				availableSeats = table.getSeatingCapacity();
-			}
+	        for (Object[] seatInfo : availableSeatsData) {
+	            Integer tableId = (Integer) seatInfo[1];  
+	            if (table.getTableId() == tableId) {
+	                availableSeats = (Integer) seatInfo[0]; 
+	                break; 
+	            }
+	        }
 
-			tableAvailability.setAvailableSeats(availableSeats);
-			seatingAvailabilityList.add(tableAvailability);
-		});
-		
-		return seatingAvailabilityList;
-		
-		
+	        if (availableSeats != null ) {
+	            tableAvailability.setAvailableSeats(availableSeats);
+	        } else {
+	            tableAvailability.setAvailableSeats(table.getSeatingCapacity());
+	        }
+
+	        seatingAvailabilityList.add(tableAvailability);
+	    });
+
+	    return seatingAvailabilityList;
 	}
 
 //	 cancel booking

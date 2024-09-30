@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.restaurant.entity.Tables;
@@ -23,6 +24,8 @@ public interface TableRepo extends JpaRepository<Tables, Integer> {
 	@Query("SELECT t.tableName FROM Tables t WHERE t.tableId = :tableId")
 	String findTableNameByTableId(@Param("tableId") int tableId);
 	
-
-   
+	
+	
+	@Query("SELECT (t.seatingCapacity - COALESCE(b.bookedSeat, 0)) AS availableSeats, t.tableId " + "FROM Tables t LEFT JOIN Booking b ON t.tableId = b.tableId " + "AND b.mealId = :mealId AND b.bookingDate = :bookingDate AND b.bookingStatus = 'Booked'")
+	List<Object[]> findSeatingAvailability(@Param("mealId") int mealId, @Param("bookingDate") LocalDate bookingDate);
 }

@@ -7,7 +7,7 @@ public class SeatingAvailabilityVo {
 	private LocalDate bookingDate;
 	private String mealType;
 	private String tableName;
-	private int availableSeats;
+	private Integer availableSeats;
 	
 	public SeatingAvailabilityVo() {
 		super();
@@ -31,11 +31,11 @@ public class SeatingAvailabilityVo {
 	public void setTableName(String list) {
 		this.tableName = list;
 	}
-	public int getAvailableSeats() {
+	public Integer getAvailableSeats() {
 		return availableSeats;
 	}
-	public void setAvailableSeats(int availableSeats) {
-		this.availableSeats = availableSeats;
+	public void setAvailableSeats(Integer availableSeats2) {
+		this.availableSeats = availableSeats2;
 	}
 	
 }

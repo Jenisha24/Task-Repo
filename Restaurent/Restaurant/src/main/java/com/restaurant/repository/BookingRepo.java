@@ -24,6 +24,6 @@ public interface BookingRepo extends JpaRepository<Booking, Integer>{
 	 @Query("SELECT b FROM Booking b WHERE b.userId IS NOT NULL AND b.userId = :userId")
 	  List<Booking> findBookingsByUserId(@Param("userId") int userId);
 
-
-
+	 @Query("SELECT (t.seatingCapacity - COALESCE(SUM(b.bookedSeat), 0)) AS availableSeats FROM Tables t LEFT JOIN Booking b ON t.tableId = b.tableId AND b.mealId = :mealId AND b.bookingDate = :bookingDate AND b.bookingStatus = 'Booked' WHERE t.tableId = :tableId GROUP BY t.tableId, t.seatingCapacity")
+	Integer findAvailableSeats(@Param("mealId") int mealId,  @Param("bookingDate") LocalDate bookingDate,  @Param("tableId") int tableId);
 }
