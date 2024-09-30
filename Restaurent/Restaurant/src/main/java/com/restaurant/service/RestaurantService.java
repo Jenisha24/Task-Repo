@@ -188,9 +188,9 @@ public class RestaurantService {
 		catch (DateTimeException e) {
 	        return "An error occurred with the date input: " + e.getMessage();
 		}   
-//		catch (Exception e) {
-//	        return "An error occurred: Invalid input";
-//	    }
+		catch (Exception e) {
+	        return "An error occurred: Invalid input";
+	    }
 	}
 
 	// check availability
